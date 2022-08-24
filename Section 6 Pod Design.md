@@ -79,3 +79,122 @@ Implementor  | Inspector
 k rollout undo deployment/myapp-deployment | k rollout history deployment/myapp-deployment
 \- | k rollout status deployment/myapp-deployment
 \- | k get replicasets
+
+### Lab
+`k create -f deployment-definition.yml`
+
+`k rollout status deployment/myapp-deployment`
+
+`k rollout history deployment/myapp-deployment`
+
+`k delete deployment myapp-deployment`
+
+`k get all`
+
+`k create -f deployment-definition.yml --record`
+
+`k rollout deployment/myapp-deployment`
+
+`k rollout history deployment/myapp-deployment`
+
+`k apply -f deployment-definition.yml`
+
+`k rollout status deployment/myapp-deployment`
+
+`k set image deployment/myapp-deployment nginx-container=nginx:1.12-perl`
+
+
+## Job
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+    name: math-pod
+spec: 
+    containers:
+      - name: math-add
+        image: ubuntu
+        command: ['expr', '3', '+', '2']
+    restartPolicy: Never
+```
+```yaml
+#job-definition.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: math-add-job
+spec: 
+    completions: 3
+    parallelism: 3
+    template:
+        spec: 
+            containers:
+              - name: math-add
+                image: ubuntu
+                command: ['expr', '3', '+', '2']
+            restartPolicy: Never
+```
+
+` k create -f job-definition.yaml`
+
+` k get jobs`
+
+` k get pods`
+
+` k logs math-add-job-1d87pn`
+
+` k delete job math-add-job`
+
+## Cronjob
+
+```yaml
+# cron-jbo-definition.yaml
+apiVersion: vatch/v1beta1
+kind: CronJob
+metadata:
+    name: reporting-cron-job
+spec: # CronJob
+    schedule: "*/1 * * * *"
+    jobTemplate:
+        spec: # Job
+            completions: 3
+            parallelism: 3
+            template:
+                spec: #POD
+                    containers:
+                    - name: math-add
+                        image: ubuntu
+                        command: ['expr', '3', '+', '2']
+                    restartPolicy: Never
+
+```
+
+`k create -f cron-job-definition.yaml`
+
+`k get cronjob`
+
+### Lab
+
+> k create job throw-dice-job --image kodekloud/throw-dice --dry-run=client -o yaml > job.yaml
+
+```yaml
+#job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: throw-dice-job
+spec:
+    backoffLimit: 25
+    completions: 3
+
+    template:
+        metadata: 
+            creationTimestamp: null
+        spec:
+            containers:
+              - image: kodekloud/throw-dice
+                name: throw-dice-job
+                resources: {}
+            restartPolicy: Never
+```
